@@ -48,49 +48,76 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
-            <p>Are you sure you want to confirm this delivery?</p>
-            <button class="btn confirm" onclick="confirmDelivery()">Confirm</button>
-            <button class="btn cancel" onclick="closeModal()">Cancel</button>
+            <!-- Product Image -->
+            <img id="modalProductImage" src="" alt="Product Image" style="width: 100px; height: 100px; margin-bottom: 10px;">
+
+            <!-- Product Information -->
+            <h3 id="modalProductName"></h3>
+            <p id="modalDeliveredID"></p>
+            <p id="modalOrderQuantity"></p>
+            <p id="modalSupplier"></p>
+
+            <!-- Buttons -->
+            <div>
+                <button class="btn cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn confirm" onclick="confirmDelivery()">Confirm</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let deliveredID;
+    let deliveryDetails = {};
 
-        // Open modal and set the delivery ID
-        function openModal(id) {
-            deliveredID = id;
-            document.getElementById("confirmModal").style.display = "flex";
-        }
+    // Open modal and set the delivery details
+    function openModal(id) {
+        // Find the delivery details in the table row
+        const row = document.querySelector(`button[onclick="openModal('${id}')"]`).closest('tr');
+        deliveryDetails = {
+            ProductImage: row.querySelector('img').src,
+            ProductName: row.children[2].innerText,
+            DeliveredID: row.children[1].innerText,
+            OrderQuantity: row.children[3].innerText,
+            Supplier: row.children[4].innerText
+        };
 
-        // Close modal
-        function closeModal() {
-            document.getElementById("confirmModal").style.display = "none";
-        }
+        // Populate the modal with the delivery details
+        document.querySelector("#modalProductImage").src = deliveryDetails.ProductImage;
+        document.querySelector("#modalProductName").innerText = deliveryDetails.ProductName;
+        document.querySelector("#modalDeliveredID").innerText = `SKU: ${deliveryDetails.DeliveredID}`;
+        document.querySelector("#modalOrderQuantity").innerText = `Quantity: ${deliveryDetails.OrderQuantity}`;
+        document.querySelector("#modalSupplier").innerText = `Supplier: ${deliveryDetails.Supplier}`;
 
-        // Confirm delivery
-        function confirmDelivery() {
-            fetch('@Url.Action("ConfirmMove", "Delivery")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ deliveredID: deliveredID })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload(); // Refresh the page
-                } else {
-                    alert('Failed to confirm delivery.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
+        // Display the modal
+        document.getElementById("confirmModal").style.display = "flex";
+    }
+
+    // Close modal
+    function closeModal() {
+        document.getElementById("confirmModal").style.display = "none";
+    }
+
+    // Confirm delivery
+    function confirmDelivery() {
+        fetch('@Url.Action("ConfirmMove", "Delivery")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ deliveredID: deliveryDetails.DeliveredID })
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload(); // Refresh the page
+            } else {
+                alert('Failed to confirm delivery.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
     </script>
 </body>
 
